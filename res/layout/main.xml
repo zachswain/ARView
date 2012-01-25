@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    
+    <RelativeLayout
+    	android:layout_width="fill_parent"
+    	android:layout_height="fill_parent"
+    	android:id="@+id/base_container">
+		<gov.ic.nga.arview.ARView  
+		    android:layout_width="fill_parent" 
+		    android:layout_height="fill_parent" 
+    	>
+    	</gov.ic.nga.arview.ARView>
+    </RelativeLayout>
+    
+    <RelativeLayout
+    	android:layout_width="fill_parent"
+    	android:layout_height="fill_parent"
+    	android:id="@+id/phonegap_container"
+    	android:keepScreenOn="true">
+    </RelativeLayout>
+    
+</RelativeLayout>
