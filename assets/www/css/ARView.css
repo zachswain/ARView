@@ -105,27 +105,46 @@
 }
 
 .poi-set-0 {
+	background-image: url(../images/marker-red.png);
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.poi-set-1 {
 	background-image: url(../images/marker-green.png);
 	background-position: center;
 	background-repeat: no-repeat;
+}
+
+.poi-set-2 {
+	background-image: url(../images/marker-blue.png);
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.x-button.poi-set-btn.x-button-normal {
+	width: 40px;
+	height: 40px;
+	background-size: 30px 30px;
+	background-repeat: no-repeat;
+	background-position: center;
+	opacity: 1;
+}
+
+.x-button.disabled.x-button-normal {
+	opacity: .3;
 }
 
 .x-button.poi-set-0-btn.x-button-normal {
-	width: 40px;
-	height: 40px;
-	background-image: url(../images/marker-green.png);
-	background-size: 30px 30px;
-	background-repeat: no-repeat;
-	background-position: center;
+	background-image: url(../images/marker-red.png);
 }
 
-.x-button.poi-set-0-btn.x-button-disabled  {
-		width: 40px;
-	height: 40px;
+.x-button.poi-set-1-btn.x-button-normal {
 	background-image: url(../images/marker-green.png);
-	background-size: 30px 30px;
-	background-repeat: no-repeat;
-	background-position: center;
+}
+
+.x-button.poi-set-2-btn.x-button-normal {
+	background-image: url(../images/marker-blue.png);
 }
 
 .disabled {
@@ -166,4 +185,5 @@
 	height: 1000px;
 	-webkit-transition: all .25s ease;
 	-moz-transition: all .25s ease;
+	background: transparent;
 }	

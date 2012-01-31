@@ -1,4 +1,5 @@
 HUD = {
+	initialized : false,
 	canvasId : null,
 	canvas : null,
 	ctx : null,
@@ -25,6 +26,7 @@ HUD = {
 	overlayOffset : 0,
 	
 	init : function(options) {
+		this.initialized = true;
 		if( options ) {
 			if( options.canvasId ) {
 				this.canvasId = options.canvasId;
@@ -128,6 +130,7 @@ HUD = {
 		
 		// draw enabled POI sets
 		for( var index =0 ; index < this.poisets.length ; index++ ) {
+			this.poisets[index].btn.setBadge(this.poisets[index].pois.length);
 			for( var index2=0 ; index2 < this.poisets[index].pois.length ; index2++ ) {
 				this._drawPOI(this.poisets[index].pois[index2], 2);
 				//this._updatePOIPopup(this.poisets[index].pois[index2]);
@@ -143,17 +146,40 @@ HUD = {
 	},
 	
 	addPOISet : function(set) {
+		set.id = this.poisets.length;
+		
 		for( var index=0 ; index<set.pois.length ; index++ ) {
 			this._initPOI(set.pois[index], {
-				cls : "poi-set-" + this.poisets.length
+				cls : "poi-set-" + set.id
 			});
 			this._updatePOIPopup(set.pois[index]);
 			this.pois.push(set.pois[index]);
 		}
 		
+		set.enable();
+		
         var btn = new Ext.Button({
-        	cls : "poi-set-0-btn"
+        	cls : "poi-set-btn",
+        	listeners : {
+        		"tap" : function() {
+        			if( set.isEnabled() ) {
+        				this.addCls("disabled");
+        				set.disable();
+        			} else {
+        				this.removeCls("disabled");
+        				set.enable();
+        			}
+        		},
+        		"taphold" : function(e, t) {
+        			alert("foo");
+//        			e.stopEvent();
+        			e.stopPropagation();
+        		}
+        		
+        	}
         });
+        
+        set.btn = btn;
         
         //btn.addCls("disabled");
         btn.setBadge(set.pois.length);
@@ -161,14 +187,28 @@ HUD = {
         var toolbar = Ext.getCmp("toolbar");
         toolbar.add(btn);
         toolbar.doLayout();
+        
+        if( set.icon ) {
+        	Ext.getCmp(btn.id).el.dom.style.backgroundImage = "url(" + set.icon + ")";
+        	Ext.getCmp(btn.id).el.dom.style.backgroundSize = "30px 30px";
+        	Ext.getCmp(btn.id).el.dom.style.backgroundRepeat = "no-repeat";
+        	Ext.getCmp(btn.id).el.dom.style.backgroundPosition = "center";
+        } else {
+        	btn.addCls("poi-set-" + set.id + "-btn");
+        }
+        
+        Ext.getCmp(btn.id).el.on('taphold', function(e, t) {
+            this.fireEvent('taphold', this, e, t);
+        }, btn);
 		
 		this.poisets.push(set);
 	},
 	
-	addPOI : function(poi) {
-		this._initPOI(poi, {
-			cls : "poi-set-generic"
-		});
+	addPOI : function(poi, options) {
+//		this._initPOI(poi, {
+//			cls : "poi-set-generic"
+//		});
+		this._initPOI(poi, options);
 		this._updatePOIPopup(poi);
 		this.pois.push(poi);
 	},
@@ -180,15 +220,23 @@ HUD = {
 		var el = new Ext.Element(poi.div);
 		//el.addCls("easeOut");
 		
-		if( typeof options != undefined ) {
-			if( typeof options.cls != undefined ) {
+		if( typeof options != "undefined" ) {
+			if( typeof options.cls != "undefined" ) {
 				el.addCls(options.cls);
+			}
+			if( typeof options.icon != "undefined" ) {
+				el.dom.style.backgroundImage = "url(" + options.icon + ")";
+				el.dom.style.backgroundSize = "30px 30px";
+				el.dom.style.backgroundRepeat = "no-repeat";
+				el.dom.style.backgroundPosition = "center";
 			}
 		}
 		
 		var label = document.createElement("div");
 		label.className = "label";
 		label.innerHTML = poi.label;
+		
+		console.log("appending child to overlay");
 		el.appendChild(label);
 		
 		el.dom.addEventListener("click", function() {

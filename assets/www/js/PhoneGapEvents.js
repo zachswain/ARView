@@ -82,14 +82,13 @@ var PhoneGapEvents = {
 		}, false);
 	},
 	
-	_startMonitoringGeolocation : function() {
-		
+	_startMonitoringGeolocation : function() {		
 		navigator.geolocation.getCurrentPosition(function(location) {
 			self._location = location;
 			self._onGeolocationChange();
 		}, function(error) {
 			console.log("PhoneGapEvents.js: Error reading geolocation, " + error)
-		}); 
+		});
 		
 		var self = this;
 		this._geolocationIntervalId = setInterval(function() {
@@ -175,14 +174,16 @@ var PhoneGapEvents = {
 //		console.log("querying orientation");
 		
 		var self = this;
-		window.plugins.OrientationPlugin.getOrientation(function(result) {
-			self._onOrientationChange(result);
-//			console.log("orientation update: " + result.x + "," + result.y + "," + result.z);
-		}, function(error) {
-			console.log("PhoneGapEvents._queryOrientation: " + error);
-		}, {
-			
-		});
+		if( window.plugins.OrientationPlugin ) {
+			window.plugins.OrientationPlugin.getOrientation(function(result) {
+				self._onOrientationChange(result);
+	//			console.log("orientation update: " + result.x + "," + result.y + "," + result.z);
+			}, function(error) {
+				console.log("PhoneGapEvents._queryOrientation: " + error);
+			}, {
+				
+			});
+		}
 	},
 	
 	_stopMonitoringOrientation : function() {
