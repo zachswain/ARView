@@ -16,14 +16,15 @@ HUD = {
 	g : 128,
 	b : 20,
 	alpha : 1,
-	hudCoverage : 10, // miles
+	hudCoverage : 5, // miles
 	borderWidth : 2,
 	redrawIntervalId : null,
 	redrawInterval : 50,
 	viewAngle : 45.0,
 	pxPerDeg : 0,
 	maxSets : 10,
-	overlayOffset : 0,
+	overlayOffset : 0, // deprecated
+	currentHeading : null,
 	
 	init : function(options) {
 		this.initialized = true;
@@ -41,11 +42,20 @@ HUD = {
 		
 		this.pxPerDeg = Ext.get("mainOverlay").getWidth() / this.viewAngle;
 		
-		var width = Math.ceil(this.pxPerDeg * 360 + 2 * Ext.get("mainOverlay").getWidth());
+//		var width = Math.ceil(this.pxPerDeg * 360 + 2 * Ext.get("mainOverlay").getWidth());
+//		var height = Ext.get("mainOverlay").getHeight();
+//		this.overlayOffset = Ext.get("mainOverlay").getWidth();
+//		Ext.get("overlay").setWidth(width);
+//		Ext.get("overlay").setHeight(height);
+		
+		var width = Math.ceil(this.pxPerDeg * 180);
 		var height = Ext.get("mainOverlay").getHeight();
-		this.overlayOffset = Ext.get("mainOverlay").getWidth();
-		Ext.get("overlay").setWidth(width);
-		Ext.get("overlay").setHeight(height);
+		
+		Ext.get("overlay0-180").setWidth(width + 20);
+		Ext.get("overlay0-180").setHeight(height);
+		Ext.get("overlay180-360").setWidth(width + 20);
+		Ext.get("overlay180-360").setHeight(height);
+		Ext.get("overlay180-360").hide();
 
 		this.canvas = document.getElementById(this.canvasId);
 		this.canvas.setAttribute("width", Math.ceil(this.width * this.scale) * 2);
@@ -66,11 +76,79 @@ HUD = {
 	
 	onOrientationChange : function() {
 		var heading = Math.floor(PhoneGapEvents.getOrientation().x);
-		var x = Math.floor(
-				-heading * this.pxPerDeg + 
-				Ext.get("mainOverlay").getWidth() / 2
-			) - this.overlayOffset;
-		Ext.get("overlay").setXY([x, 20]);
+		if( this.currentHeading==null ) currentHeading = heading;
+//		var x = Math.floor(
+//				-heading * this.pxPerDeg + 
+//				Ext.get("mainOverlay").getWidth() / 2
+//			) - this.overlayOffset;
+//		Ext.get("overlay").setXY([x, 20]);
+		
+		if( heading < 180 && heading >= 0 ) {
+			// 0-180 main display
+			var x = Math.floor(
+					-heading * this.pxPerDeg +
+					Ext.get("mainOverlay").getWidth() / 2
+					);
+			
+			Ext.get("overlay0-180").setXY([x,20]);
+			Ext.get("overlay0-180").show();
+			
+			// 180-360 on the right
+			if( heading > 180 - this.viewAngle ) {
+				x = Math.floor(
+						(180 - heading + this.viewAngle / 2) * this.pxPerDeg
+					);
+				Ext.get("overlay180-360").setXY([x,20]);
+				Ext.get("overlay180-360").show();
+				
+			// 180-360 on the left
+			} else if( heading >= 0 && heading < this.viewAngle ) {
+				x = Math.floor(
+						(- 180 + this.viewAngle / 2 - heading) * this.pxPerDeg
+					);
+				
+				Ext.get("overlay180-360").setXY([x,20]);
+				Ext.get("overlay180-360").show();
+				
+			// 180-360 off the screen
+			} else {
+				Ext.get("overlay180-360").hide();
+			}
+		
+		// 180 < heading < 360
+		} else {
+			// 180-360 main display
+			var x = Math.floor(
+					-(heading-180) * this.pxPerDeg +
+					Ext.get("mainOverlay").getWidth() / 2
+					);
+			
+			Ext.get("overlay180-360").setXY([x,20]);
+			Ext.get("overlay180-360").show();
+			
+			// 0-180 on the right
+			if( heading >= 360 - this.viewAngle ) {
+				// 0-180 should still be showing on the right
+				x = Math.floor( 
+						Ext.get("mainOverlay").getWidth() - 
+						(heading - (360 - this.viewAngle / 2)) * this.pxPerDeg
+					);
+				Ext.get("overlay0-180").setXY([x,20]);
+				Ext.get("overlay0-180").show();
+			
+			// 0-180 on the left
+			} else if( heading < 180 + this.viewAngle ) {
+				x = Math.floor(
+						(180 - heading - 180 + this.viewAngle / 2) * this.pxPerDeg
+					);
+				Ext.get("overlay0-180").setXY([x,20]);
+				Ext.get("overlay0-180").show();
+			} else {
+				Ext.get("overlay0-180").hide();
+			}
+		}
+		
+		//Ext.get("overlay180-360").setXY([,20]);
 		//console.log("overlay x = " + x);
 	},
 	
@@ -125,15 +203,15 @@ HUD = {
 		// draw POIs
 		for( var index = 0 ; index < this.pois.length ; index++ ) {			
 			this._drawPOI(this.pois[index], 2);
-			//this._updatePOIPopup(this.pois[index]);
 		}
 		
 		// draw enabled POI sets
 		for( var index =0 ; index < this.poisets.length ; index++ ) {
 			this.poisets[index].btn.setBadge(this.poisets[index].pois.length);
-			for( var index2=0 ; index2 < this.poisets[index].pois.length ; index2++ ) {
-				this._drawPOI(this.poisets[index].pois[index2], 2);
-				//this._updatePOIPopup(this.poisets[index].pois[index2]);
+			if( this.poisets[index].enabled ) {
+				for( var index2=0 ; index2 < this.poisets[index].pois.length ; index2++ ) {
+					this._drawPOI(this.poisets[index].pois[index2], 2);
+				}
 			}
 		}
 		this.ctx.restore();
@@ -153,7 +231,7 @@ HUD = {
 				cls : "poi-set-" + set.id
 			});
 			this._updatePOIPopup(set.pois[index]);
-			this.pois.push(set.pois[index]);
+			//this.pois.push(set.pois[index]);
 		}
 		
 		set.enable();
@@ -182,7 +260,7 @@ HUD = {
         set.btn = btn;
         
         //btn.addCls("disabled");
-        btn.setBadge(set.pois.length);
+        //btn.setBadge(set.pois.length);
         
         var toolbar = Ext.getCmp("toolbar");
         toolbar.add(btn);
@@ -210,7 +288,7 @@ HUD = {
 //		});
 		this._initPOI(poi, options);
 		this._updatePOIPopup(poi);
-		this.pois.push(poi);
+		//this.pois.push(poi);
 	},
 	
 	_initPOI : function(poi, options) {
@@ -236,15 +314,38 @@ HUD = {
 		label.className = "label";
 		label.innerHTML = poi.label;
 		
-		console.log("appending child to overlay");
+//		console.log("appending child to overlay");
 		el.appendChild(label);
 		
 		el.dom.addEventListener("click", function() {
-			alert("foo");
+			var currentPosition = PhoneGapEvents.getLocation();
+			var lat1 = new LatLon(currentPosition.coords.latitude, currentPosition.coords.longitude);
+			var lat2 = new LatLon(poi.latitude, poi.longitude);
+			
+			// Calculate the distance between us and the poi
+			var relativeDistance = lat1.distanceTo(lat2);
+			
+			var mi = _KMtoMI(relativeDistance);
+			var distance = mi;
+			var units = "mi";
+			
+			if( Math.round(distance) < 1 ) {
+				distance = Math.round(_MItoFT(distance));
+				units = "ft";
+			} else {
+				distance = Math.round(distance);
+			}
+			
+			Ext.getCmp("poiInformationPanel").update({
+				distance : distance,
+				units : units,
+				label : poi.label
+			});
+			
+			Ext.getCmp("poiInformationPanel").setVisible(true);
 		}, false);
 		
-//		Ext.get(this.containerId).appendChild(el.dom);
-		Ext.get("overlay").appendChild(el.dom);
+		Ext.get("overlay180-360").appendChild(el.dom);
 		
 		var x = Math.floor((Ext.get("mainOverlay").getWidth() - el.getWidth()) / 2); 
 		var y = Ext.get("main").getHeight();
@@ -344,22 +445,23 @@ HUD = {
 //			
 		if( relativeBearing < 0 ) relativeBearing += 360;
 		
-//		var x = (
-//				Ext.get("mainOverlay").getWidth() / 2) // center 
-//			+	(normalize180(0, relativeBearing - deviceOrientationAdjustment) / (this.viewAngle/2)) // half the relative angle 
-//			* (Ext.get("mainOverlay").getWidth() / 2); // screen width multiplier
+		if( relativeBearing < 180 ) {
+			Ext.get(poi.div).appendTo(Ext.get("overlay0-180"));
+		} else {
+			Ext.get(poi.div).appendTo(Ext.get("overlay180-360"));
+		}
+		
+//		console.log(poi.label + " " + relativeBearing);
+		
 		var x = Math.floor(
-				relativeBearing * this.pxPerDeg + 
-				//Ext.get("mainOverlay").getWidth() / 2 +
-				this.overlayOffset
+				(relativeBearing % 180) * this.pxPerDeg 
 				);
 		var y = Math.floor(Ext.get("mainOverlay").getHeight() / 2);
 		
-		//console.log(poi.label + " set to (" + x + "," + y + ") for rb=" + relativeBearing);
-		
 		// Draw the poi div on the viewscreen
 		var el = Ext.get(poi.div);
-		//el.setXY([x,y]);
+		
+		// Use setTop/setLeft, not setXY so it's relative, not absolute
 		el.setTop(y);
 		el.setLeft(x);
 	}

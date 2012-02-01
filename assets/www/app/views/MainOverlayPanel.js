@@ -5,8 +5,32 @@ app.views.MainOverlayPanel = Ext.extend(Ext.Panel, {
 	style : {
 		background : "transparent"
 	},
-	html : "<canvas id='hud'></canvas><div id='overlay'></div>",
+	html : "<canvas id='hud'></canvas><div id='overlay0-180' class='overlay'></div><div id='overlay180-360' class='overlay'></div>",
 	styleHtmlContent : false,
+	
+	dockedItems : [
+	     {
+	    	 id : "poiInformationPanel",
+	    	 xtype : "container",
+	    	 dock : "bottom",
+	    	 tpl : [
+	    	      "<div id='distanceContainer'>",
+	    	      "<div class='distance'>{distance}{units}</div>",
+	    	      "</div>",
+	    	      "<div id='informationContainer'>",
+	    	      "<div id='poiInformationLabel'>{label}</div>",
+	    	      "<div id='poiInformationDescription'>{description}</div>",
+	    	      "</div>"
+	    	 ],
+	         listeners : {
+	        	 afterrender : function() {
+	        		this.el.on("click", function() {
+	        			Ext.getCmp("poiInformationPanel").setVisible(false);
+	        		});
+	        	 }
+	         }
+	     }
+	],
 	
 	listeners : {
 		afterLayout : function() {
@@ -37,10 +61,6 @@ app.views.MainOverlayPanel = Ext.extend(Ext.Panel, {
 				
 				Ext.get("hud").setXY([10, 30]);
 				
-//				PhoneGapEvents.onOrientationChange(function() {
-//					HUD.redraw();
-//				});
-				
 				console.log("calling userdataplugin");
 		    	window.plugins.UserDataPlugin.getUserData(function(result) {
 		    		if( result ) {
@@ -64,6 +84,15 @@ app.views.MainOverlayPanel = Ext.extend(Ext.Panel, {
 		    	}, function(error) {
 		    		console.log("Error reading user data: " + error);
 		    	});
+		    	
+//		    	Ext.getCmp("poiInformationPanel").update({
+//		    		distance : "5",
+//		    		units : "km",
+//		    		label : "asdf",
+//		    		description : "asdf"
+//		    	});
+		    	
+		    	Ext.getCmp("poiInformationPanel").setVisible(false);
 				
 		    	/*
 				var set = new POISet({ label : "haymarket" });

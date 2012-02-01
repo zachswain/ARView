@@ -89,6 +89,7 @@
 #hud {
 	margin: 5px;
 	position: absolute;
+	z-index: 10;
 }
 
 .poiPopup {
@@ -186,4 +187,55 @@
 	-webkit-transition: all .25s ease;
 	-moz-transition: all .25s ease;
 	background: transparent;
-}	
+}
+
+.overlay {
+	position: absolute;
+	width: 3600px;
+	height: 1000px;
+	-webkit-transition: all .25s ease;
+	-moz-transition: all .25s ease;
+}
+
+#overlay0-180 {
+	background: transparent;
+}
+
+#overlay180-360 {
+	background: transparent;
+}
+
+#poiInformationPanel {
+	margin: 5px;
+	background: red;
+	border-radius: 5px;
+	border: solid 1px #000080;
+	background-color: rgba(200,200,255,1);
+	height: 5em;
+}
+
+#poiInformationPanel #distanceContainer {
+	width: 4em;
+	float: left;
+	margin-left: 5px;
+	margin-top: 5px;
+}
+
+#poiInformationPanel #informationContainer {
+	margin-left: 5em;
+	margin-top: 5px;
+}
+
+#poiInformationPanel .distance {
+	font-size: 1.5em;
+	font-family: Verdana, Times New Roman;
+	color: black;
+	text-align: center;
+}
+
+#poiInformationLabel {
+}
+
+#poiInformationDescription {
+	font-size: .5em;
+}
