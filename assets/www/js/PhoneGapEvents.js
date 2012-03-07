@@ -84,10 +84,12 @@ var PhoneGapEvents = {
 	
 	_startMonitoringGeolocation : function() {		
 		navigator.geolocation.getCurrentPosition(function(location) {
+			console.log("got geolocation = " + location);
 			self._location = location;
 			self._onGeolocationChange();
 		}, function(error) {
-			console.log("PhoneGapEvents.js: Error reading geolocation, " + error)
+			Ext.Msg.alert("Error reading geolocation", error.message);
+			console.log("PhoneGapEvents.js: Error reading geolocation, " + error.message)
 		});
 		
 		var self = this;
@@ -96,10 +98,12 @@ var PhoneGapEvents = {
 				console.log("PhoneGapEvents.js: Got geolocation");
 				clearInterval(self._geolocationIntervalId);
 				self._geolocationIntervalId = navigator.geolocation.watchPosition(function(location) {
+					console.log("got new location = " + location);
 					self._location = location;
 					self._onGeolocationChange();
 				}, function(error) {
-					console.log("PhoneGapEvents.js: Error reading geolocation, " + error)
+					Ext.Msg.alert("Error reading geolocation", error.message);
+					console.log("PhoneGapEvents.js: Error reading geolocation, " + error.message)
 				}, { frequency: self._options.monitorGeolocationDelay }); 
 			}
 		}, 250);

@@ -1,22 +1,19 @@
 package gov.ic.nga.arview;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
-import android.graphics.PixelFormat;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.WindowManager;
 
 public class ARView extends SurfaceView implements SurfaceHolder.Callback {
 	public int THRESHOLD = 60;
@@ -105,6 +102,40 @@ public class ARView extends SurfaceView implements SurfaceHolder.Callback {
         mCamera = null;
     }
     
+    private Size getOptimalPreviewSize(List<Size> sizes, int w, int h) {
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio = (double) w / h;
+        if (sizes == null) return null;
+
+        Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = h;
+
+        // Try to find an size match aspect ratio and size
+        for (Size size : sizes) {
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        // Cannot find the one match the aspect ratio, ignore the requirement
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Size size : sizes) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
+        }
+        return optimalSize;
+    }
+
+    
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
         // Now that the size is known, set up the camera parameters and begin
         // the preview.    	
@@ -121,30 +152,34 @@ public class ARView extends SurfaceView implements SurfaceHolder.Callback {
     			List<Camera.Size> supportedSizes = null;
     			supportedSizes = parameters.getSupportedPreviewSizes();
 
-    			//preview form factor
-    			Log.e("ARView", "wxh = " + Integer.toString(w) + "X" + Integer.toString(h));
-    			float ff = ((float)w)/((float)h);
+//    			//preview form factor
+//    			Log.e("ARView", "wxh = " + Integer.toString(w) + "X" + Integer.toString(h));
+//    			float ff = ((float)w)/((float)h);
+//
+//    			//holder for the best form factor and size
+//    			float bff = 0;
+//    			int bestw = 0;
+//    			int besth = 0;
+//    			Iterator<Camera.Size> itr = supportedSizes.iterator();
+//    			while(itr.hasNext()) {
+//    				Camera.Size element = itr.next();
+//    				//current form factor
+//    				Log.e("CamPreview", "Size = " + Integer.toString(element.width) + "X" + Integer.toString(element.height));
+//    				float cff = ((float)element.width)/((float)element.height);
+//    				if ((ff-cff <= ff-bff) && (element.width <= w) && (element.width >= bestw)) {
+//    					bff=cff;
+//    					bestw = element.width;
+//    					besth = element.height;
+//    				}
+//
+//    			}
+//    			WIDTH = bestw;
+//    			HEIGHT = besth;
+    			
+    			Size optimalSize = getOptimalPreviewSize(supportedSizes, w, h);
 
-    			//holder for the best form factor and size
-    			float bff = 0;
-    			int bestw = 0;
-    			int besth = 0;
-    			Iterator<Camera.Size> itr = supportedSizes.iterator();
-    			while(itr.hasNext()) {
-    				Camera.Size element = itr.next();
-    				//current form factor
-    				Log.e("CamPreview", "Size = " + Integer.toString(element.width) + "X" + Integer.toString(element.height));
-    				float cff = ((float)element.width)/((float)element.height);
-    				if ((ff-cff <= ff-bff) && (element.width <= w) && (element.width >= bestw)) {
-    					bff=cff;
-    					bestw = element.width;
-    					besth = element.height;
-    				}
-
-    			}
-
-    			WIDTH = bestw;
-    			HEIGHT = besth;
+    			WIDTH = optimalSize.width;
+    			HEIGHT = optimalSize.height;
     		} catch (Exception ex) {
     			Log.e("ARView", "", ex);
     		}
@@ -154,34 +189,41 @@ public class ARView extends SurfaceView implements SurfaceHolder.Callback {
     		HEIGHT = 320;
     	}
         parameters.setPreviewSize(WIDTH, HEIGHT);
-        parameters.setPictureFormat(PixelFormat.JPEG);
         
-        Display display = ((WindowManager)this.getContext().getSystemService(android.content.Context.WINDOW_SERVICE)).getDefaultDisplay();
-
-        if(display.getRotation() == Surface.ROTATION_0)
-        {
-            parameters.setPreviewSize(HEIGHT, WIDTH);                           
-            mCamera.setDisplayOrientation(90);
-        }
-
-        if(display.getRotation() == Surface.ROTATION_90)
-        {
-            parameters.setPreviewSize(WIDTH, HEIGHT);
-            mCamera.setDisplayOrientation(0);
-        }
-
-        if(display.getRotation() == Surface.ROTATION_180)
-        {
-            parameters.setPreviewSize(HEIGHT, WIDTH);               
-        }
-
-        if(display.getRotation() == Surface.ROTATION_270)
-        {
-            parameters.setPreviewSize(WIDTH, HEIGHT);
-            mCamera.setDisplayOrientation(180);
-        }
+//        parameters.setPictureFormat(PixelFormat.JPEG);
+//        
+//        Display display = ((WindowManager)this.getContext().getSystemService(android.content.Context.WINDOW_SERVICE)).getDefaultDisplay();
+//
+//        if(display.getRotation() == Surface.ROTATION_0)
+//        {
+//            parameters.setPreviewSize(HEIGHT, WIDTH);                           
+//            mCamera.setDisplayOrientation(90);
+//        }
+//
+//        if(display.getRotation() == Surface.ROTATION_90)
+//        {
+//            parameters.setPreviewSize(WIDTH, HEIGHT);
+//            mCamera.setDisplayOrientation(0);
+//        }
+//
+//        if(display.getRotation() == Surface.ROTATION_180)
+//        {
+//            parameters.setPreviewSize(HEIGHT, WIDTH);               
+//        }
+//
+//        if(display.getRotation() == Surface.ROTATION_270)
+//        {
+//            parameters.setPreviewSize(WIDTH, HEIGHT);
+//            mCamera.setDisplayOrientation(180);
+//        }
+//        
+//        Log.d("ARView", "Rotation: " + display.getRotation());
         
-        Log.d("ARView", "Rotation: " + display.getRotation());
+        if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+        	mCamera.setDisplayOrientation(90);
+        } else {
+        	mCamera.setDisplayOrientation(0);
+        }
         
         mCamera.setParameters(parameters);
         try {
@@ -189,7 +231,7 @@ public class ARView extends SurfaceView implements SurfaceHolder.Callback {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 //	        mCamera.release();
-			Log.e("CamPreview", "", e);
+			Log.e("ARView", "", e);
 		}
     }
     

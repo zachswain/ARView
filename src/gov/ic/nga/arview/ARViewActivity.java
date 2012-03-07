@@ -129,11 +129,7 @@ public class ARViewActivity extends DroidGap {
 
 		super.onCreate(savedInstanceState);
 
-		if (null == userData) {
-			super.loadUrl("file:///android_asset/www/index.html");
-		} else {
-			super.loadUrl("file:///android_asset/www/index.html?" + userData);
-		}
+		super.loadUrl("file:///android_asset/www/index.html");
 
 		setContentView(R.layout.main);
 		RelativeLayout view = (RelativeLayout) findViewById(R.id.phonegap_container);

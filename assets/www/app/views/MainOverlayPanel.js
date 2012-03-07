@@ -48,6 +48,7 @@ app.views.MainOverlayPanel = Ext.extend(Ext.Panel, {
 						app.unmask();
 						clearInterval(geolocationIntervalId);
 						DataSets.load();
+					} else {
 					}
 				}, 250);
 				
